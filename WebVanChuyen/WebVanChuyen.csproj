@@ -21,9 +21,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\Account\" />
-    <Folder Include="Views\Shipment\" />
-  </ItemGroup>
-
 </Project>
