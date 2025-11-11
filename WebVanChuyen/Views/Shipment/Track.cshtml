@@ -1,5 +1,101 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model WebVanChuyen.Models.Shipment
 @{
+    ViewData["Title"] = "Tra cứu vận đơn";
+}
+
+<style>
+    /* CSS cho Timeline đơn giản */
+    .timeline {
+        list-style-type: none;
+        position: relative;
+    }
+
+        .timeline:before {
+            content: ' ';
+            background: #d4d9df;
+            display: inline-block;
+            position: absolute;
+            left: 29px;
+            width: 2px;
+            height: 100%;
+            z-index: 400;
+        }
+
+        .timeline > li {
+            margin: 20px 0;
+            padding-left: 50px;
+        }
+
+            .timeline > li:before {
+                content: ' ';
+                background: white;
+                display: inline-block;
+                position: absolute;
+                border-radius: 50%;
+                border: 3px solid #22c0e8;
+                left: 20px;
+                width: 20px;
+                height: 20px;
+                z-index: 400;
+            }
+
+    .timeline-item-info {
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Track" method="get">
+    <div class="input-group mb-3">
+        <input type="text" name="trackingNumber" class="form-control" placeholder="Nhập mã vận đơn của bạn..." value="@Model?.TrackingNumber">
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Tra cứu</button>
+        </div>
+    </div>
+</form>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+@if (Model != null)
+{
+    <hr />
+    <h4>Chi tiết đơn hàng: @Model.TrackingNumber</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Trạng thái</dt>
+                <dd class="col-sm-8"><strong>@Model.CurrentStatus</strong></dd>
+
+                <dt class="col-sm-4">Người gửi</dt>
+                <dd class="col-sm-8">@Model.SenderName (Email: @Model.Sender?.Email)</dd>
+
+                <dt class="col-sm-4">Địa chỉ nhận</dt>
+                <dd class="col-sm-8">@Model.ReceiverAddress</dd>
+
+                <dt class="col-sm-4">Cân nặng</dt>
+                <dd class="col-sm-8">@Model.WeightKg kg</dd>
+
+                <dt class="col-sm-4">Phí vận chuyển</dt>
+                <dd class="col-sm-8">@Model.ShippingFee.ToString("C0")</dd>
+            </dl>
+        </div>
+
+        <div class="col-md-6">
+            <h4>Hành trình đơn hàng</h4>
+            <ul class="timeline">
+                @foreach (var history in Model.History)
+                {
+                    <li>
+                        <strong>@history.Status</strong> - <span class="text-muted">@history.Location</span>
+                        <div class="timeline-item-info">@history.Timestamp.ToString("g")</div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
 }

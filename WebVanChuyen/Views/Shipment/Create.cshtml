@@ -1,5 +1,112 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model WebVanChuyen.ViewModels.ShipmentCreateViewModel
 @{
+    ViewData["Title"] = "Tạo đơn hàng mới";
+    // Giả sử ViewBag.Zones được truyền từ Controller (GET)
+    var zonesList = ViewBag.Zones as SelectList;
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="SenderName"></label>
+                <input asp-for="SenderName" class="form-control" />
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="ReceiverAddress"></label>
+                <input asp-for="ReceiverAddress" class="form-control" />
+            </div>
+
+            <hr />
+
+            <div class="form-group mb-3">
+                <label asp-for="WeightKg"></label>
+                <input asp-for="WeightKg" id="weight" class="form-control" type="number" step="0.1" />
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="FromZoneId">Gửi từ</label>
+                <select asp-for="FromZoneId" id="fromZone" class="form-control" asp-items="zonesList">
+                    <option value="">-- Chọn khu vực --</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="ToZoneId">Gửi đến</label>
+                <select asp-for="ToZoneId" id="toZone" class="form-control" asp-items="zonesList">
+                    <option value="">-- Chọn khu vực --</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Tạo đơn hàng</button>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        <h4>Phí ước tính</h4>
+        <div id="fee-result" class="alert alert-info" style="font-size: 1.5rem; font-weight: bold;">
+            Vui lòng nhập thông tin...
+        </div>
+        <div id="fee-error" class="text-danger"></div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Lấy các element
+        const weightInput = document.getElementById('weight');
+        const fromZoneInput = document.getElementById('fromZone');
+        const toZoneInput = document.getElementById('toZone');
+        const feeResultDiv = document.getElementById('fee-result');
+        const feeErrorDiv = document.getElementById('fee-error');
+
+        // Hàm gọi API
+        async function calculateFee() {
+            const weight = weightInput.value;
+            const fromZone = fromZoneInput.value;
+            const toZone = toZoneInput.value;
+
+            // 1. Kiểm tra đầu vào
+            if (!weight || !fromZone || !toZone) {
+                feeResultDiv.innerText = "Vui lòng nhập đủ thông tin...";
+                feeErrorDiv.innerText = "";
+                return;
+            }
+
+            feeResultDiv.innerText = "Đang tính...";
+            feeErrorDiv.innerText = "";
+
+            try {
+                // 2. Gửi yêu cầu GET đến API
+                const response = await fetch(`/api/shipping/calculate?weightKg=${weight}&fromZoneId=${fromZone}&toZoneId=${toZone}`);
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 3. Nhận phản hồi JSON và cập nhật
+                    const formattedFee = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.calculatedFee);
+                    feeResultDiv.innerText = formattedFee;
+                } else {
+                    // Xử lý lỗi (HTTP 400)
+                    feeResultDiv.innerText = "Lỗi";
+                    feeErrorDiv.innerText = data.message;
+                }
+            } catch (error) {
+                // Xử lý lỗi mạng
+                feeResultDiv.innerText = "Lỗi";
+                feeErrorDiv.innerText = "Không thể kết nối đến máy chủ tính phí.";
+            }
+        }
+
+        // 1. Bắt sự kiện onchange
+        weightInput.addEventListener('change', calculateFee);
+        fromZoneInput.addEventListener('change', calculateFee);
+        toZoneInput.addEventListener('change', calculateFee);
+    </script>
 }

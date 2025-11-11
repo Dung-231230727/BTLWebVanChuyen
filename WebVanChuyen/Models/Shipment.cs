@@ -2,30 +2,28 @@
 
 namespace WebVanChuyen.Models
 {
-    public enum ShipmentStatus
-    {
-        Pending,     // Đang chờ xác nhận
-        Processing,  // Đang xử lý (nhận hàng)
-        InTransit,   // Đang vận chuyển
-        Delivered,   // Đã giao hàng
-        Canceled     // Đã hủy
-    }
     public class Shipment
     {
         public int Id { get; set; }
         public string TrackingNumber { get; set; }
-        public string SenderName { get; set; } // Tên người gửi (hoặc có thể dùng ApplicationUser.FullName)
+        public string SenderName { get; set; }
         public string ReceiverAddress { get; set; }
+
+        [Column(TypeName = "decimal(18, 2)")]
         public decimal WeightKg { get; set; }
-        public decimal ShippingFee { get; set; }
-        public ShipmentStatus CurrentStatus { get; set; }
 
-        // Foreign Key: Sender (User tạo đơn hàng)
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal ShippingFee { get; set; } // Phí vận chuyển
+
+        public ShipmentStatus CurrentStatus { get; set; } // Sử dụng Enum
+        public DateTime CreatedDate { get; set; } // Thêm theo yêu cầu 5.1
+
+        // Khóa ngoại và Navigation Property cho Sender (ApplicationUser)
         public string SenderId { get; set; }
-
-        // Navigation Properties
         [ForeignKey("SenderId")]
-        public ApplicationUser Sender { get; set; }
-        public ICollection<ShipmentHistory> History { get; set; }
+        public virtual ApplicationUser Sender { get; set; }
+
+        // Navigation Property (một Shipment có nhiều History)
+        public virtual ICollection<ShipmentHistory> History { get; set; }
     }
 }
